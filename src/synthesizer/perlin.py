@@ -50,7 +50,7 @@ class PerlinNoise(object):
 
     def __getitem__(self, x):
         """ :rtype: float """
-        return self.perlinNoise1D(x)
+        return self.perlinNoise1D(x * 10.0)
 
     def __call__(self, x):
         """ :rtype: float """

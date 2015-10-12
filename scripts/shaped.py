@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-from synthesizer import PerlinNoise, PrimeGenerator, ShapedPerlin, ShapeFunction
+from synthesizer import PerlinNoise, PrimeGenerator, ShapedNoise, ShapeFunction
 
 if __name__ == '__main__':
     prime_generator = PrimeGenerator(seed=1)
@@ -35,8 +35,8 @@ if __name__ == '__main__':
             for p in parameters:
 
                 noise = PerlinNoise(prime_generator=prime_generator, **p)
-                shaper = ShapedPerlin(noise, shapeFunction, divergenceFunction, scale=0.1)
-                values = [shaper(x / 100.0) for x in range(1000)]
+                shaper = ShapedNoise(noise, shapeFunction, divergenceFunction)
+                values = [shaper(x, scale=0.001) for x in range(1000)]
 
                 line = plt.plot(values, label=str(p))
 

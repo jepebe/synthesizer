@@ -39,28 +39,64 @@ class ShapeFunction(object):
         return self.interpolator(x)
 
 
-class ShapedPerlin(object):
+class ConstantShapeFunction(ShapeFunction):
+    def __init__(self, value):
+        super(ConstantShapeFunction, self).__init__([0.0], [value])
 
-    def __init__(self, perlin, shapeFunction, divergenceFunction, scale=1.0):
+
+
+class ShapedNoise(object):
+
+    def __init__(self, noiseFunction, shapeFunction, divergenceFunction, offset=0.0, cutoff=None):
         self.shapeFunction = shapeFunction
         self.divergenceFunction = divergenceFunction
-        self.perlin = perlin
-        self.scale = scale
+        self.noiseFunction = noiseFunction
+        self.offset = offset
+        self.cutoff = cutoff
 
-    def __call__(self, x):
-        scaled_x = x * self.scale
-        return self.shapeFunction(scaled_x) + self.perlin(x) * self.divergenceFunction(scaled_x)
-
+    def __call__(self, x, scale=1.0):
+        scaled_x = x * scale
+        result = self.shapeFunction(scaled_x) + self.noiseFunction(scaled_x) * self.divergenceFunction(scaled_x)
+        result += self.offset
+        if self.cutoff is not None:
+            result = max(result, self.cutoff)
+        return result
 
 
 class ShapeCreator(object):
 
     @staticmethod
     def createShapeFunction(count=1000, persistence=0.2, octaves=8, seed=1):
+        """ @rtype: ShapeFunction """
         prime_generator = PrimeGenerator(seed=seed)
         perlininator = PerlinNoise(persistence=persistence, number_of_octaves=octaves, prime_generator=prime_generator)
 
         x_values = [x / float(count) for x in range(count)]
-        y_values = [perlininator(x * 10.0) for x in x_values]
+        y_values = [perlininator(x) for x in x_values]
 
         return ShapeFunction(x_values, y_values)
+
+    @staticmethod
+    def createShapedPerlinFunction(divergence_x, divergence_y, shape_seed=None, perlin_seed=None, count=1000, persistence=0.2, octaves=8, offset=0.0, cutoff=None):
+        """ @rtype: ShapedNoise """
+        shapeFunction = ShapeCreator.createShapeFunction(count, persistence, octaves, shape_seed)
+        divergenceFunction = ShapeFunction(divergence_x, divergence_y)
+        prime_generator = PrimeGenerator(perlin_seed)
+        perlin_noise = PerlinNoise(persistence, octaves, prime_generator)
+
+        return ShapedNoise(perlin_noise, shapeFunction, divergenceFunction, offset=offset, cutoff=cutoff)
+
+    @staticmethod
+    def createNoiseFunction(shapeFunction=None, divergenceFunction=None, seed=None, persistence=0.2, octaves=8, offset=0.0, cutoff=None):
+        """ @rtype: ShapedNoise """
+        if shapeFunction is None:
+            shapeFunction = ConstantShapeFunction(0.0)
+
+        if divergenceFunction is None:
+            divergenceFunction = ConstantShapeFunction(1.0)
+
+        prime_generator = PrimeGenerator(seed)
+        perlin_noise = PerlinNoise(persistence, octaves, prime_generator)
+
+        noise = ShapedNoise(perlin_noise, shapeFunction, divergenceFunction, offset=offset, cutoff=cutoff)
+        return noise
