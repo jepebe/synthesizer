@@ -21,7 +21,7 @@ def plotVector(title, vectors):
 if __name__ == '__main__':
     realizations = []
     for realization in range(10):
-        ecl_sum = EclSum.writer("PERLIN", datetime(2010, 1, 1), 10, 10, 10)
+        ecl_sum = EclSum.writer("MERGEL", datetime(2010, 1, 1), 10, 10, 10)
 
         ecl_sum.addVariable("FOPT")
         ecl_sum.addVariable("FOPR")
@@ -45,9 +45,9 @@ if __name__ == '__main__':
         ecl_sum.addVariable("BPR", num=globalIndex(1, 3, 8))
 
         simulator = OilSimulator()
-        simulator.addWell("OP1", realization * 997)
-        simulator.addWell("OP2", realization * 13)
-        simulator.addBlock("5,5,5", realization * 37)
+        simulator.addWell("OP1", realization * 997, persistence=0.2, octaves=8, divergence_scale=0.5)
+        simulator.addWell("OP2", realization * 13, persistence=0.2, octaves=8, divergence_scale=1.5)
+        simulator.addBlock("5,5,5", realization * 37, persistence=0.2)
         simulator.addBlock("1,3,8", realization * 31, persistence=0.4)
 
         for report_step in range(1000):

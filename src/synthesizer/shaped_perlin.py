@@ -32,11 +32,15 @@ class Interpolator(object):
 
 
 class ShapeFunction(object):
-    def __init__(self, x, y):
+    def __init__(self, x, y, scale=1.0):
+        self.scale = scale
         self.interpolator = Interpolator(x, y)
 
     def __call__(self, x):
-        return self.interpolator(x)
+        return self.interpolator(x) * self.scale
+
+    def scaledCopy(self, scale=1.0):
+        return ShapeFunction(self.interpolator.x, self.interpolator.y, scale)
 
 
 class ConstantShapeFunction(ShapeFunction):
